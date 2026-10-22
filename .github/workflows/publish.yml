@@ -1,0 +1,71 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 1 * *"  # monthly, keeps the window ahead of today
+  workflow_dispatch:
+    inputs:
+      start:
+        description: First day (YYYY-MM-DD, default 7 days ago)
+        required: false
+      days:
+        description: Number of days
+        default: "400"
+
+env:
+  # Pinned Divinum Officium commit (MIT); bump deliberately and check the output.
+  DO_REF: 0a4021177d0ff6d374ac5cdc2f138dd9fee5a1b7
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: DivinumOfficium/divinum-officium
+          ref: ${{ env.DO_REF }}
+          path: divinum-officium
+          sparse-checkout: |
+            web/cgi-bin
+            web/www/horas/Latin
+            web/www/horas/English
+            web/www/horas/Ordinarium
+            web/www/Tabulae
+      - name: Install Perl modules
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libcgi-pm-perl
+      - name: Render
+        run: |
+          start="${{ inputs.start }}"
+          tools/render.sh divinum-officium raw "${start:-$(date -u -d '7 days ago' +%F)}" "${{ inputs.days || 400 }}"
+      - name: Pack
+        run: |
+          mkdir -p site
+          cp index.html site/
+          python3 tools/pack.py raw site/v1 --ref "$DO_REF"
+          test -n "$(ls site/v1/en)" && test -n "$(ls site/v1/la)"
+          du -sh site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
