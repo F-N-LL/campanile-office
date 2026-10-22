@@ -52,7 +52,7 @@ jobs:
       - name: Pack
         run: |
           mkdir -p site
-          cp index.html site/
+          cp -r web/. site/
           python3 tools/pack.py raw site/v1 --ref "$DO_REF"
           test -n "$(ls site/v1/en)" && test -n "$(ls site/v1/la)"
           du -sh site

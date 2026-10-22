@@ -1,7 +1,11 @@
 # campanile-office
 
-Daily texts of the traditional Roman Office (Rubrics 1960) in English and Latin,
-published on GitHub Pages for the Campanile Mac app:
+The public site of the Campanile Mac app (`web/`: landing page, privacy policy
+and terms in English and Spanish) and the daily texts of the traditional Roman
+Office (Rubrics 1960) in English and Latin that the app downloads:
+
+    https://f-n-ll.github.io/campanile-office/            (site)
+    https://f-n-ll.github.io/campanile-office/es/         (Spanish)
 
     https://f-n-ll.github.io/campanile-office/v1/<en|la>/<YYYY-MM-DD>.json
 
